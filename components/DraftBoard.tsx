@@ -29,11 +29,11 @@ const PlayerCard: React.FC<{ player: Player; overallPick: number; round: number 
   return (
     <div className={`p-2 rounded-md h-28 flex flex-col justify-between text-left shadow-lg border border-gray-700/50 border-l-4 ${roundColorClass} ${positionColors.border}`}>
       <div>
-        <div className="flex justify-between items-baseline">
-          <p className="font-bold text-sm text-white truncate" title={player.name}>
+        <div className="flex justify-between items-start gap-2">
+          <p className="font-bold text-sm text-white break-words" title={player.name}>
             {player.name}
           </p>
-          <p className={`text-xs font-mono font-bold ml-2 flex-shrink-0 ${positionColors.text}`}>
+          <p className={`text-xs font-mono font-bold flex-shrink-0 ${positionColors.text}`}>
             {player.position}
           </p>
         </div>
