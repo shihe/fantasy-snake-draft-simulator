@@ -1,0 +1,2 @@
+# fantasy-snake-draft-simulator
+A web application that takes a ranked list of players and generates a visual snake draft board. Users can configure the number of teams (8, 10, 12, or 14) to see how the draft would play out.
