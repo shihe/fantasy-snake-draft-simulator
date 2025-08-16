@@ -1,4 +1,3 @@
-
 export interface Player {
   rank: number;
   name: string;
@@ -7,4 +6,4 @@ export interface Player {
 
 export type DraftBoardData = Record<string, (Player | null)[]>;
 
-export type DataSource = 'Sleeper' | 'Yahoo' | 'ESPN';
+export type DataSource = 'Sleeper' | 'Yahoo' | 'ESPN' | 'Custom';

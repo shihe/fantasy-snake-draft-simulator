@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { Player, DraftBoardData, DataSource } from './types';
 import Controls from './components/Controls';
 import DraftBoard from './components/DraftBoard';
@@ -69,22 +68,68 @@ const generateSnakeDraft = (players: Player[], numTeams: number): DraftBoardData
   return board;
 };
 
+const setCookie = (name: string, value: string, days: number) => {
+  let expires = "";
+  if (days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (encodeURIComponent(value) || "") + expires + "; path=/; SameSite=Lax; Secure";
+};
+
+const getCookie = (name: string): string | null => {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  }
+  return null;
+};
+
 
 const App: React.FC = () => {
-  const [rawText, setRawText] = useState<string>(SLEEPER_PLAYER_LIST);
   const [numTeams, setNumTeams] = useState<number>(10);
   const [error, setError] = useState<string | null>(null);
-  const [dataSource, setDataSource] = useState<DataSource>('Sleeper');
+  const [pickedPlayers, setPickedPlayers] = useState<Set<number>>(new Set());
+  
+  const [rawText, setRawText] = useState<string>(() => {
+    return getCookie('customPlayerRankings') || SLEEPER_PLAYER_LIST;
+  });
 
-  const draftData = useMemo(() => {
-    const { players, error: parseError } = parsePlayerText(rawText);
-    if (parseError) {
-      setError(parseError);
-      return {};
+  const [dataSource, setDataSource] = useState<DataSource>(() => {
+    return getCookie('customPlayerRankings') ? 'Custom' : 'Sleeper';
+  });
+
+  useEffect(() => {
+    if (dataSource === 'Custom') {
+      setCookie('customPlayerRankings', rawText, 365);
     }
-    setError(null);
-    return generateSnakeDraft(players, numTeams);
-  }, [rawText, numTeams]);
+  }, [rawText, dataSource]);
+  
+  // Memoize the parsed players and any parsing error
+  const { players, error: parseError } = useMemo(() => parsePlayerText(rawText), [rawText]);
+
+  // Update the error state when the parsing result changes
+  useEffect(() => {
+    setError(parseError);
+  }, [parseError]);
+  
+  // When player list changes, reset the picked players
+  useEffect(() => {
+    setPickedPlayers(new Set());
+  }, [rawText]);
+
+  // Memoize the draft board generation
+  const draftData = useMemo(() => {
+    if (players && players.length > 0) {
+      return generateSnakeDraft(players, numTeams);
+    }
+    return {};
+  }, [players, numTeams]);
+
 
   const handleDataSourceChange = (source: DataSource) => {
     setDataSource(source);
@@ -98,9 +143,31 @@ const App: React.FC = () => {
       case 'ESPN':
         setRawText(ESPN_PLAYER_LIST);
         break;
+      case 'Custom':
+        setRawText(getCookie('customPlayerRankings') || '');
+        break;
     }
   };
   
+  const handleRawTextChange = (text: string) => {
+    setRawText(text);
+    if (dataSource !== 'Custom') {
+      setDataSource('Custom');
+    }
+  };
+
+  const handleTogglePlayerPicked = (playerRank: number) => {
+    setPickedPlayers(prevPicked => {
+      const newPicked = new Set(prevPicked);
+      if (newPicked.has(playerRank)) {
+        newPicked.delete(playerRank);
+      } else {
+        newPicked.add(playerRank);
+      }
+      return newPicked;
+    });
+  };
+
   return (
     <div className="bg-gray-900 text-gray-200 min-h-screen font-sans p-4 sm:p-8">
       <div className="max-w-screen-2xl mx-auto">
@@ -116,7 +183,7 @@ const App: React.FC = () => {
         <main>
           <Controls
             rawText={rawText}
-            setRawText={setRawText}
+            setRawText={handleRawTextChange}
             numTeams={numTeams}
             setNumTeams={setNumTeams}
             dataSource={dataSource}
@@ -130,7 +197,12 @@ const App: React.FC = () => {
             </div>
           )}
 
-          <DraftBoard boardData={draftData} numTeams={numTeams} />
+          <DraftBoard 
+            boardData={draftData} 
+            numTeams={numTeams} 
+            pickedPlayers={pickedPlayers}
+            onTogglePlayerPicked={handleTogglePlayerPicked}
+          />
         </main>
       </div>
     </div>

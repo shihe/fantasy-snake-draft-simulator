@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DataSource } from '../types';
 
@@ -12,7 +11,7 @@ interface ControlsProps {
 }
 
 const TEAM_OPTIONS = [8, 10, 12, 14];
-const DATA_SOURCES: DataSource[] = ['Sleeper', 'Yahoo', 'ESPN'];
+const DATA_SOURCES: DataSource[] = ['Sleeper', 'Yahoo', 'ESPN', 'Custom'];
 
 const Controls: React.FC<ControlsProps> = ({
   rawText,
@@ -38,14 +37,14 @@ const Controls: React.FC<ControlsProps> = ({
             onChange={(e) => setRawText(e.target.value)}
             aria-label="Player Rankings Input"
           />
-          <p className="text-xs text-gray-500 mt-2">Format: Rank Name Position (e.g., 1 Ja'Marr Chase WR)</p>
+          <p className="text-xs text-gray-500 mt-2">Format: Rank Name Position (e.g., 1 Ja'Marr Chase WR). Your custom list is saved automatically.</p>
         </div>
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Default Ranking ADP Source (1/2 PPR, 8/15/25)
+              Player Ranking Source
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {DATA_SOURCES.map((source) => (
                 <button
                   key={source}
