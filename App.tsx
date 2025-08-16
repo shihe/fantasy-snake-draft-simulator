@@ -68,27 +68,6 @@ const generateSnakeDraft = (players: Player[], numTeams: number): DraftBoardData
   return board;
 };
 
-const setCookie = (name: string, value: string, days: number) => {
-  let expires = "";
-  if (days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    expires = "; expires=" + date.toUTCString();
-  }
-  document.cookie = name + "=" + (encodeURIComponent(value) || "") + expires + "; path=/; SameSite=Lax; Secure";
-};
-
-const getCookie = (name: string): string | null => {
-  const nameEQ = name + "=";
-  const ca = document.cookie.split(';');
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-  }
-  return null;
-};
-
 
 const App: React.FC = () => {
   const [numTeams, setNumTeams] = useState<number>(10);
@@ -96,16 +75,16 @@ const App: React.FC = () => {
   const [pickedPlayers, setPickedPlayers] = useState<Set<number>>(new Set());
   
   const [rawText, setRawText] = useState<string>(() => {
-    return getCookie('customPlayerRankings') || SLEEPER_PLAYER_LIST;
+    return localStorage.getItem('customPlayerRankings') || SLEEPER_PLAYER_LIST;
   });
 
   const [dataSource, setDataSource] = useState<DataSource>(() => {
-    return getCookie('customPlayerRankings') ? 'Custom' : 'Sleeper';
+    return localStorage.getItem('customPlayerRankings') ? 'Custom' : 'Sleeper';
   });
 
   useEffect(() => {
     if (dataSource === 'Custom') {
-      setCookie('customPlayerRankings', rawText, 365);
+      localStorage.setItem('customPlayerRankings', rawText);
     }
   }, [rawText, dataSource]);
   
@@ -144,7 +123,7 @@ const App: React.FC = () => {
         setRawText(ESPN_PLAYER_LIST);
         break;
       case 'Custom':
-        setRawText(getCookie('customPlayerRankings') || '');
+        setRawText(localStorage.getItem('customPlayerRankings') || '');
         break;
     }
   };
